@@ -1,0 +1,8 @@
+".\Objects\STARTUP.obj",
+".\Objects\MAIN.obj",
+".\Objects\LCD12864.obj",
+".\Objects\GSM800C.obj",
+".\Objects\key.obj" 
+TO ".\Objects\MAIN" 
+
+PRINT(".\Listings\MAIN.map") REMOVEUNUSED 

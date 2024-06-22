@@ -1,0 +1,124 @@
+C51 COMPILER V9.60.7.0   MAIN                                                              05/27/2024 16:20:47 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\MAIN.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE MAIN.c LARGE OMF2 OPTIMIZE(9,SPEED) BROWSE DEBUG PRINT(.\Listings\MAIN.l
+                    -st) TABS(2) OBJECT(.\Objects\MAIN.obj)
+
+line level    source
+
+   1          #include <STC89C5xRC.H>
+   2          #include "LCD12864.H"
+   3          #include "gsm800c.h"
+   4          #include "key.h"
+   5          #include "stdio.h"
+   6          #include "string.h"
+   7          #include <stdlib.h>  
+   8          #include "config.h"
+   9          
+  10          
+  11          #define Relay_Delay {LED = 0;BEEP = 0;delay_ms(200);BEEP = 1; LED = 1;}
+  12          char i=0;
+  13          void main(){
+  14   1        RELAY1 = OFF;
+  15   1        RELAY2 = OFF;
+  16   1        RELAY3 = OFF;
+  17   1        KEYH=0;
+  18   1          p_PageDATA->Input_Enable=0;
+  19   1          p_PageDATA->UnlockSign=0;
+  20   1          p_PageDATA->Box[0] =0;
+  21   1          p_PageDATA->Box[1] =0;
+  22   1          p_PageDATA->Refresh=0;
+  23   1          p_PageDATA->Sel_fun=0;
+  24   1          p_PageDATA->Error_Add = 0;
+  25   1          p_PageDATA->BEEP_CallThePolice = 0;
+  26   1          LCD12864_BK =0;
+  27   1          //液晶初始化
+  28   1          LCD12864_Init();
+  29   1          Uart1Init();    //9600bps@11.0592MHz
+  30   1          Timer0_Init();
+  31   1          LCD12864_Display_Chars(2,1,"初始化中... ");
+  32   1          #if USE_GSM800C
+  33   1          Wait_CREG();    //查询等待模块注册成功
+  34   1          Relay_Delay;
+  35   1          #endif
+  36   1          LCD12864_Display_Chars(2,1,"初始化成功   ");
+  37   1          LCD12864_Write_Com(0x01);  
+  38   1          delay_ms(1000);
+  39   1          memcpy(p_PageData()->Correct_PassWord,"543322",6);
+  40   1          memset(p_GMS->phone1,' ',11);
+  41   1          memset(p_GMS->phone2,' ',11);
+  42   1          memset(p_PageDATA->UserInAuthCode,' ',6);
+  43   1          p_PageDATA->UserInAuthCode[6]='\0';
+  44   1          p_GMS->PhoneToUnicode[44] = '\0';
+  45   1          p_PageDATA->AuthCodeToUnicode[24] = '\0';
+  46   1          Clean_PassWord(p_PageDATA);
+  47   1          p_PageDATA->PAGE_NUM = Theme;
+  48   1          p_PageDATA->PassWord_Check =0;
+  49   1          Get_A()->Page_S_i=0;
+  50   1          while(1)
+  51   1          {
+  52   2            //扫描按键
+  53   2            if(Get_ReadKeyFlag())
+  54   2            {
+C51 COMPILER V9.60.7.0   MAIN                                                              05/27/2024 16:20:47 PAGE 2   
+
+  55   3              KeyScan();
+  56   3              p_PageDATA->Key_Value = Get_KeyValue();
+  57   3              Clean_ReadKeyFlag();
+  58   3            }
+  59   2            //按键按下更新屏幕或特殊条件刷新
+  60   2            if(p_PageDATA->Key_Value || p_PageDATA->Refresh)
+  61   2            {
+  62   3               p_PageDATA->Refresh = 0;
+  63   3              Page_Control(p_PageDATA);
+  64   3              #if Print_Debug
+                      printf("NUM:%d,Key:%d,p_Input_En:%d\n",(int)p_PageDATA->PAGE_NUM,(int)p_PageDATA->Key_Value,(int)p_Pag
+             -eDATA->Input_Enable);
+                      #endif        
+  67   3              //开关背光
+  68   3              (p_PageDATA->Key_Value == BackLightKey)? LCD12864_BK=!LCD12864_BK:LCD12864_BK;
+  69   3               p_PageDATA->Key_Value =0;
+  70   3            }       
+  71   2            Refresh_Page(p_PageDATA);
+  72   2            (p_PageDATA->PAGE_NUM>Max_Flag)? p_PageDATA->PAGE_NUM=Theme:p_PageDATA->PAGE_NUM;
+  73   2            //继电器开关
+  74   2            if(p_PageDATA->UnlockSign == 1)
+  75   2            {
+  76   3              p_PageDATA->UnlockSign=0;
+  77   3              RELAY2 = !RELAY2;
+  78   3              RELAY3 = !RELAY3;
+  79   3              Relay_Delay
+  80   3              RELAY2 = !RELAY2;
+  81   3              RELAY3 = !RELAY3;
+  82   3            }
+  83   2            else if(p_PageDATA->UnlockSign == 2)
+  84   2            {
+  85   3              p_PageDATA->UnlockSign=0;
+  86   3              RELAY1 = !RELAY1;
+  87   3              RELAY3 = !RELAY3;
+  88   3              Relay_Delay
+  89   3              RELAY1 = !RELAY1;
+  90   3              RELAY3 = !RELAY3;       
+  91   3            }
+  92   2          }
+  93   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    534    ----
+   CONSTANT SIZE    =     34    ----
+   XDATA SIZE       =      1    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

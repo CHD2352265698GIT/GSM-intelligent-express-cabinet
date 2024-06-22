@@ -1,0 +1,268 @@
+C51 COMPILER V9.60.7.0   KEY                                                               05/27/2024 16:20:48 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE KEY
+OBJECT MODULE PLACED IN .\Objects\key.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE key.c LARGE OMF2 OPTIMIZE(9,SPEED) BROWSE DEBUG PRINT(.\Listings\key.lst
+                    -) TABS(2) OBJECT(.\Objects\key.obj)
+
+line level    source
+
+   1          #include <STC89C5xRC.H>
+   2          #include "key.h"
+   3          #include "string.h"
+   4          #include "stdio.h"
+   5          #include "lcd12864.h"
+   6          #include "GSM800C.h"
+   7          #include "config.h"
+   8          
+   9          
+  10          
+  11          
+  12          static char Key_value=0;
+  13          static char Read_Key=0;
+  14          char Get_ReadKeyFlag(void)
+  15          {
+  16   1         return Read_Key;
+  17   1      }
+  18          char Get_KeyValue(void)
+  19          {
+  20   1         return Key_value;
+  21   1      }
+  22          void Clean_ReadKeyFlag(void)
+  23          {
+  24   1        Read_Key = 0;
+  25   1      }
+  26          char Check_Column(void)
+  27          {
+  28   1        char value=0;
+  29   1        KeyPort = 0xf0;
+  30   1        if(KeyPort!= 0xf0)
+  31   1        {
+  32   2          switch (KeyPort)
+  33   2          {
+  34   3            case  0x70: value = 1;
+  35   3              break;
+  36   3            case  0xB0: value = 2;
+  37   3              break;
+  38   3            case  0xD0: value = 3;
+  39   3              break;
+  40   3            case  0xE0: value = 4;
+  41   3              break;
+  42   3            default:  value =0; 
+  43   3              break;
+  44   3          }
+  45   2        #if PrintLC
+                  printf("Column:%d\n",(int)value);
+                #endif
+  48   2        }
+  49   1        return value;
+  50   1      }
+  51          char Check_Line(void)
+  52          {
+  53   1        char value=0;
+  54   1        KeyPort = 0x0f;
+C51 COMPILER V9.60.7.0   KEY                                                               05/27/2024 16:20:48 PAGE 2   
+
+  55   1        if(KeyPort!= 0x0f)
+  56   1        {
+  57   2          switch (KeyPort)
+  58   2          {
+  59   3            case  0x07: value = 1;
+  60   3              break;   
+  61   3            case  0x0B: value = 2;
+  62   3              break;   
+  63   3            case  0x0D: value = 3;
+  64   3              break;   
+  65   3            case  0x0E: value = 4;
+  66   3              break;
+  67   3            default:  value =0; 
+  68   3              break;
+  69   3          }
+  70   2        #if PrintLC
+                printf("Line:%d\n",(int)value);
+                #endif
+  73   2        }
+  74   1        return value;
+  75   1      }
+  76          
+  77          
+  78          void KeyScan(void)
+  79          {
+  80   1        char  column = Check_Column();
+  81   1        char  line =   Check_Line();
+  82   1        if(column && line)
+  83   1        {
+  84   2          switch (column)
+  85   2          {
+  86   3              case 4: switch (line)
+  87   3                      {
+  88   4                        case 1: Key_value=13;
+  89   4                          break;
+  90   4                        case 2: Key_value=14;
+  91   4                          break;
+  92   4                        case 3: Key_value=15;
+  93   4                          break;
+  94   4                        case 4: Key_value=16;
+  95   4                          break;
+  96   4                        default: Key_value = 0;
+  97   4                          break;
+  98   4                      }
+  99   3              break;
+ 100   3            case 3: switch (line)
+ 101   3                      {
+ 102   4                        case 1: Key_value=9;
+ 103   4                          break;
+ 104   4                        case 2: Key_value=10;
+ 105   4                          break;
+ 106   4                        case 3: Key_value=11;
+ 107   4                          break;
+ 108   4                        case 4: Key_value=12;
+ 109   4                          break;
+ 110   4                        default: Key_value = 0;
+ 111   4                          break;
+ 112   4                      }
+ 113   3              break;
+ 114   3            case 2:  switch (line)
+ 115   3                      {
+ 116   4                        case 1: Key_value=5;
+C51 COMPILER V9.60.7.0   KEY                                                               05/27/2024 16:20:48 PAGE 3   
+
+ 117   4                          break;
+ 118   4                        case 2: Key_value=6;
+ 119   4                          break;
+ 120   4                        case 3: Key_value=7;
+ 121   4                          break;
+ 122   4                        case 4: Key_value=8;
+ 123   4                          break;
+ 124   4                        default:Key_value = 0;
+ 125   4                          break;
+ 126   4                      }
+ 127   3              break;
+ 128   3            case 1: switch (line)
+ 129   3                      {
+ 130   4                        case 1: Key_value=1;
+ 131   4                          break;
+ 132   4                        case 2: Key_value=2;
+ 133   4                          break;
+ 134   4                        case 3: Key_value=3;
+ 135   4                          break;
+ 136   4                        case 4: Key_value=4;
+ 137   4                          break;
+ 138   4                        default: Key_value = 0;
+ 139   4                          break;
+ 140   4                      }
+ 141   3              break;
+ 142   3            default: Key_value = 0;
+ 143   3              break;
+ 144   3          }
+ 145   2        }
+ 146   1        else  Key_value = 0;
+ 147   1          
+ 148   1      }
+ 149          static unsigned char time1=0;
+ 150          static unsigned char time2=0;
+ 151          static unsigned int time3=0;
+ 152          void Timer0_Isr(void) interrupt 1
+ 153          {
+ 154   1          TH0 = 0x0FC;
+ 155   1          TL0 = 0x66;
+ 156   1       if(time1++==Buffeting_time)
+ 157   1        {
+ 158   2         Read_Key=1;
+ 159   2         time1=0;
+ 160   2        }
+ 161   1        if(p_GMS->Timer0_start)
+ 162   1        {
+ 163   2          time2++;
+ 164   2          if(time2==250)
+ 165   2          p_GMS->Timer0_start=0;
+ 166   2        }
+ 167   1        if(p_PageDATA->BEEP_CallThePolice)
+ 168   1        {
+ 169   2          if(time3++ == Beep_frequency)
+ 170   2          {
+ 171   3            time3 = 0;
+ 172   3            BEEP = !BEEP;
+ 173   3            LED =!LED;
+ 174   3          }
+ 175   2        }
+ 176   1      }
+ 177          
+ 178          void Timer0_Init(void)    //1000Œ¢√Î@11.0592MHz
+C51 COMPILER V9.60.7.0   KEY                                                               05/27/2024 16:20:48 PAGE 4   
+
+ 179          {
+ 180   1          TMOD |= 0x01;
+ 181   1          TH0 = 0x0FC;
+ 182   1          TL0 = 0x66;
+ 183   1          EA = 1;
+ 184   1          ET0 = 1;
+ 185   1          TR0 = 1;
+ 186   1      }
+ 187          
+ 188          
+ 189          void Set_Val(char* value,bit Enable)
+ 190          {
+ 191   1        if(Enable)
+ 192   1        {
+ 193   2          switch (*value)
+ 194   2          {
+ 195   3            case 1:
+ 196   3              break;
+ 197   3            case 2: 
+ 198   3              break;
+ 199   3            case 3:
+ 200   3              break;
+ 201   3            case 4: 
+ 202   3              break;
+ 203   3            case 5: 
+ 204   3              break;
+ 205   3            case 6: 
+ 206   3              break;
+ 207   3            case 7: 
+ 208   3              break;
+ 209   3            case 8: 
+ 210   3              break;
+ 211   3            case 9: 
+ 212   3              break;
+ 213   3            case 10:
+ 214   3              break;
+ 215   3            case 11:
+ 216   3              break;
+ 217   3            case 12:
+ 218   3              break;
+ 219   3            case 13: 
+ 220   3              break;
+ 221   3            case 14:
+ 222   3              break;
+ 223   3            case 15: 
+ 224   3              break;
+ 225   3            case 16: 
+ 226   3              break;
+ 227   3            default:
+ 228   3              break;
+ 229   3          }
+ 230   2          *value=0;
+ 231   2        }
+ 232   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    547    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =      6       3
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+C51 COMPILER V9.60.7.0   KEY                                                               05/27/2024 16:20:48 PAGE 5   
+
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       1
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
